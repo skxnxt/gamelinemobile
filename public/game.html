@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMORPG Game</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.6.0/css/all.css">
+    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Mitr', sans-serif;
+        }
+        .character-info, .monster-info {
+            text-align: center;
+        }
+        .progress {
+            height: 20px;
+        }
+        .menu-bar {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .menu-bar button {
+            flex: 1;
+            margin: 0 5px;
+        }
+        .fight-area {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 30px;
+        }
+        .fight-area img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 3px solid black;
+        }
+        .game-log {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body class="bg-dark text-white">
+    <div class="container mt-5">
+        <div class="fight-area">
+            <!-- Player section -->
+            <div class="character-info">
+                <img src="" alt="Character Image" id="player-image">
+                <h3 id="player-name">Player Name</h3>
+                <p>Level: <span id="player-level">1</span></p>
+                <p>EXP:</p>
+                <div class="progress">
+                    <div id="exp-progress" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+
+            <!-- Start Fight button -->
+            <div class="start-fight">
+                <button id="start-fight" class="btn btn-primary">Start Fight</button>
+            </div>
+
+            <!-- Monster section -->
+            <div class="monster-info">
+                <img src="monster.jpg" alt="Monster Image" id="monster-image">
+                <h3 id="monster-name">Monster Name</h3>
+                <p>HP:</p>
+                <div class="progress">
+                    <div id="hp-progress" class="progress-bar bg-danger" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <p id="monster-info">Monster Info</p>
+            </div>
+        </div>
+
+        <!-- Menu bar -->
+        <div class="menu-bar">
+            <button class="btn btn-outline-light">Character Info</button>
+            <button class="btn btn-outline-light">Inventory</button>
+            <button class="btn btn-outline-light">Shop</button>
+            <button class="btn btn-outline-light">Black Market</button>
+            <button class="btn btn-outline-light">Settings</button>
+        </div>
+
+        <!-- Game Log -->
+        <div class="game-log text-center">
+            <h5>Game Log</h5>
+            <div id="game-log-text" class="text-light">No actions yet...</div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        // Fetch selected character data from the server session
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('http://192.168.1.8:3000/api/selected-character', {
+                credentials: 'include'  // Ensures cookies (including the session cookie) are sent with the request
+                     })  // Update the URL to match your backend API
+                .then(response => response.json())
+                .then(character => {
+                    // Update the UI with the character details
+                    document.getElementById('player-name').textContent = character.name;
+                    document.getElementById('player-image').src = `images/${character.char_img}`;
+                    document.getElementById('player-level').textContent = character.level;
+                    
+                    const expPercent = (character.exp / 100) * 100;  // Assuming exp is out of 100 for simplicity
+                    document.getElementById('exp-progress').style.width = `${expPercent}%`;
+                    document.getElementById('exp-progress').setAttribute('aria-valuenow', expPercent);
+                })
+                .catch(error => {
+                    console.error('Error fetching character:', error);
+                    location.href = '/select-character.html';  // Redirect back to character selection if no character found
+                });
+        });
+
+        // Monster fight logic
+        const monsters = [
+            { name: 'Goblin', hp: 100, img: 'goblin.jpg', info: 'A weak but fast creature.' },
+            { name: 'Orc', hp: 200, img: 'orc.jpg', info: 'A strong and brutal monster.' },
+            { name: 'Dragon', hp: 500, img: 'dragon.jpg', info: 'A legendary fire-breathing beast.' }
+        ];
+
+        document.getElementById('start-fight').addEventListener('click', function () {
+            // Select a random monster
+            const randomMonster = monsters[Math.floor(Math.random() * monsters.length)];
+            
+            // Update the monster section with the new monster
+            document.getElementById('monster-name').textContent = randomMonster.name;
+            document.getElementById('monster-image').src = randomMonster.img;
+            document.getElementById('hp-progress').style.width = '100%';
+            document.getElementById('hp-progress').setAttribute('aria-valuenow', randomMonster.hp);
+            document.getElementById('monster-info').textContent = randomMonster.info;
+
+            // Log the fight start
+            document.getElementById('game-log-text').textContent = `You encountered a ${randomMonster.name}! Prepare for battle.`;
+        });
+    </script>
+</body>
+</html>
